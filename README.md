@@ -4,10 +4,10 @@ that we are calling "Minger Games"
 
 # Game Design Document
 ## Team Members: 
-### Daniel Jacoby, Roles:
-### Garrett Slone, Roles:
-### Michael Kammer, Roles:Note Taker
-### Scott Coonis, Roles:
+### Daniel Jacoby, Roles: Basic Game Mechanic Designer
+### Garrett Slone, Roles: GitHub Manager, Networking Master
+### Michael Kammer, Roles: Procederal Level Generation Manager
+### Scott Coonis, Roles: Basic Game Mechanic Designer
 
 ## Game Description:
 We are building a FPS/Third Person survivial game based on the Hunger Games concept. It will have procederally generated levels, alongside multiplayer.
