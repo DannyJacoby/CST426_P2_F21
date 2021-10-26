@@ -1,16 +1,18 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "MingerGamesCharacter.h"
-#include "MingerGamesProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "Projectile.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -82,6 +84,27 @@ AMingerGamesCharacter::AMingerGamesCharacter()
 
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
+
+    //Initialize the player's Health
+    MaxHealth = 100.0f;
+    CurrentHealth = MaxHealth;
+
+    //Initialize projectile class
+    ProjectileClass = AProjectile::StaticClass();
+    //Initialize fire rate
+    FireRate = 0.25f;
+    bIsFiringWeapon = false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Replicated Properties
+
+void AMingerGamesCharacter::GetLifetimeReplicatedProps(TArray <FLifetimeProperty> & OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    //Replicate current health.
+    DOREPLIFETIME(AMingerGamesCharacter, CurrentHealth);
 }
 
 void AMingerGamesCharacter::BeginPlay()
@@ -118,7 +141,7 @@ void AMingerGamesCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	// Bind fire event
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMingerGamesCharacter::OnFire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMingerGamesCharacter::StartFire);
 
 	// Enable touchscreen input
 	EnableTouchscreenMovement(PlayerInputComponent);
@@ -138,52 +161,80 @@ void AMingerGamesCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AMingerGamesCharacter::LookUpAtRate);
 }
 
-void AMingerGamesCharacter::OnFire()
+//void AMingerGamesCharacter::OnFire()
+//{
+//	// try and fire a projectile
+//	if (ProjectileClass != nullptr)
+//	{
+//		UWorld* const World = GetWorld();
+//		if (World != nullptr)
+//		{
+//			if (bUsingMotionControllers)
+//			{
+//				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
+//				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
+//				World->SpawnActor<AProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+//			}
+//			else
+//			{
+//				const FRotator SpawnRotation = GetControlRotation();
+//				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+//				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+//
+//				//Set Spawn Collision Handling Override
+//				FActorSpawnParameters ActorSpawnParams;
+//				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+//
+//				// spawn the projectile at the muzzle
+//				World->SpawnActor<AProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+//			}
+//		}
+//	}
+//
+//	// try and play the sound if specified
+//	if (FireSound != nullptr)
+//	{
+//		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+//	}
+//
+//	// try and play a firing animation if specified
+//	if (FireAnimation != nullptr)
+//	{
+//		// Get the animation object for the arms mesh
+//		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+//		if (AnimInstance != nullptr)
+//		{
+//			AnimInstance->Montage_Play(FireAnimation, 1.f);
+//		}
+//	}
+//}
+
+void AMingerGamesCharacter::StartFire()
 {
-	// try and fire a projectile
-	if (ProjectileClass != nullptr)
-	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
-		{
-			if (bUsingMotionControllers)
-			{
-				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<AMingerGamesProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-			}
-			else
-			{
-				const FRotator SpawnRotation = GetControlRotation();
-				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+    if (!bIsFiringWeapon)
+    {
+        bIsFiringWeapon = true;
+        UWorld* World = GetWorld();
+        World->GetTimerManager().SetTimer(FiringTimer, this, &AMingerGamesCharacter::StopFire, FireRate, false);
+        HandleFire();
+    }
+}
 
-				//Set Spawn Collision Handling Override
-				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+void AMingerGamesCharacter::StopFire()
+{
+    bIsFiringWeapon = false;
+}
 
-				// spawn the projectile at the muzzle
-				World->SpawnActor<AMingerGamesProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-			}
-		}
-	}
+void AMingerGamesCharacter::HandleFire_Implementation()
+{
+    FVector spawnLocation = GetActorLocation() + ( GetControlRotation().Vector()  * 100.0f ) + (GetActorUpVector() * 50.0f);
+    FRotator spawnRotation = GetControlRotation();
 
-	// try and play the sound if specified
-	if (FireSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
+    FActorSpawnParameters spawnParameters;
+    spawnParameters.Instigator = GetInstigator();
+    spawnParameters.Owner = this;
 
-	// try and play a firing animation if specified
-	if (FireAnimation != nullptr)
-	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if (AnimInstance != nullptr)
-		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
-		}
-	}
+    AProjectile* spawnedProjectile = GetWorld()->SpawnActor<AProjectile>(spawnLocation, spawnRotation, spawnParameters);
 }
 
 void AMingerGamesCharacter::OnResetVR()
@@ -197,10 +248,10 @@ void AMingerGamesCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, cons
 	{
 		return;
 	}
-	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
-	{
-		OnFire();
-	}
+//	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
+//	{
+//		OnFire();
+//	}
 	TouchItem.bIsPressed = true;
 	TouchItem.FingerIndex = FingerIndex;
 	TouchItem.Location = Location;
@@ -297,4 +348,53 @@ bool AMingerGamesCharacter::EnableTouchscreenMovement(class UInputComponent* Pla
 	}
 	
 	return false;
+}
+
+void AMingerGamesCharacter::SetCurrentHealth(float healthValue)
+{
+    if (GetLocalRole() == ROLE_Authority)
+    {
+        CurrentHealth = FMath::Clamp(healthValue, 0.f, MaxHealth);
+        OnHealthUpdate();
+    }
+}
+
+void AMingerGamesCharacter::OnRep_CurrentHealth()
+{
+    OnHealthUpdate();
+}
+
+void AMingerGamesCharacter::OnHealthUpdate()
+{
+    //Client-specific functionality
+    if (IsLocallyControlled())
+    {
+        FString healthMessage = FString::Printf(TEXT("You now have %f health remaining."), CurrentHealth);
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, healthMessage);
+
+        if (CurrentHealth <= 0)
+        {
+            FString deathMessage = FString::Printf(TEXT("You have been killed."));
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
+        }
+    }
+
+    //Server-specific functionality
+    if (GetLocalRole() == ROLE_Authority)
+    {
+        FString healthMessage = FString::Printf(TEXT("%s now has %f health remaining."), *GetFName().ToString(), CurrentHealth);
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, healthMessage);
+    }
+
+    //Functions that occur on all machines.
+    /*
+        Any special functionality that should occur as a result of damage or death should be placed here.
+    */
+}
+
+float AMingerGamesCharacter::TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+    float damageApplied = CurrentHealth - DamageTaken;
+    SetCurrentHealth(damageApplied);
+    return damageApplied;
 }
