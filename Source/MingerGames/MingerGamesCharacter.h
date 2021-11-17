@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "HudWidget.h"
 #include "MingerGamesCharacter.generated.h"
 
 class UInputComponent;
@@ -59,6 +60,12 @@ public:
 
 protected:
 	virtual void BeginPlay();
+
+    // Dynamic reference to the blueprint class
+    TSubclassOf<class UUserWidget> HudWidgetClass;
+
+    UPROPERTY(BlueprintReadWrite, Category = "UI")
+    class UHudWidget* hud;
 
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */

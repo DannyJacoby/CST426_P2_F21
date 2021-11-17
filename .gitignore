@@ -1,4 +1,17 @@
 
+./Build-Dev
+/Build-Dev
++/Build-Dev
+
+
+./Build-Dev/
+/Build-Dev/
++/Build-Dev/
+
+.Build-Dev/
+Build-Dev/
++Build-Dev/
+
 # Created by https://www.toptal.com/developers/gitignore/api/jetbrains+all,clion+all,visualstudio,visualstudiocode,unrealengine,c++,linux,macos,windows,cmake,games
 # Edit at https://www.toptal.com/developers/gitignore?templates=jetbrains+all,clion+all,visualstudio,visualstudiocode,unrealengine,c++,linux,macos,windows,cmake,games
 
