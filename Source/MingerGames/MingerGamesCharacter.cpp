@@ -95,13 +95,13 @@ AMingerGamesCharacter::AMingerGamesCharacter()
     FireRate = 0.25f;
     bIsFiringWeapon = false;
 
-    // Find the Widget and assigned to InGameUIClass
-    static ConstructorHelpers::FClassFinder<UUserWidget> HudWidgetIGBPClass(TEXT("/Game/Blueprints/HUD"));
+    // // Find the Widget and assigned to InGameUIClass
+    // static ConstructorHelpers::FClassFinder<UUserWidget> HudWidgetIGBPClass(TEXT("/Game/Blueprints/HUD"));
 
-    if (HudWidgetIGBPClass.Class != nullptr)
-    {
-        HudWidgetClass = HudWidgetIGBPClass.Class;
-    }
+    // if (HudWidgetIGBPClass.Class != nullptr)
+    // {
+    //     HudWidgetClass = HudWidgetIGBPClass.Class;
+    // }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,14 +135,14 @@ void AMingerGamesCharacter::BeginPlay()
 		Mesh1P->SetHiddenInGame(false, true);
 	}
 
-    if (IsValid(HudWidgetClass))
-    {
-        hud = CreateWidget<UHudWidget>(this, HudWidgetClass);
-        if (hud == nullptr) return;
+//     if (IsValid(HudWidgetClass))
+//     {
+//         hud = CreateWidget<UHudWidget>(this, HudWidgetClass);
+//         if (hud == nullptr) return;
 
-        hud->AddToViewport();
-//        hud->SetMenuInterface(this);
-    }
+//         hud->AddToViewport();
+// //        hud->SetMenuInterface(this);
+//     }
 }
 
 //////////////////////////////////////////////////////////////////////////
