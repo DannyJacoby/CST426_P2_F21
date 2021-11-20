@@ -2,6 +2,8 @@
 The second project in a trio of projects for CST 426 (Game Design) at CSU Monterey Bay
 that we are calling "Minger Games"
 
+Download the Game now!! https://drive.google.com/file/d/1zP1UiZ-jp-Ye-d-YipZESqtD5bVAD0fE/view?usp=sharing
+
 # Game Design Document
 ## Team Members: 
 ### Daniel Jacoby, Roles: Basic Game Mechanic Designer
