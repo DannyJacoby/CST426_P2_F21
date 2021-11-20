@@ -2,8 +2,6 @@
 The second project in a trio of projects for CST 426 (Game Design) at CSU Monterey Bay
 that we are calling "Minger Games"
 
-Download the Game now!! https://drive.google.com/file/d/1zP1UiZ-jp-Ye-d-YipZESqtD5bVAD0fE/view?usp=sharing
-
 # Game Design Document
 ## Team Members: 
 ### Daniel Jacoby, Roles: Basic Game Mechanic Designer
@@ -12,19 +10,8 @@ Download the Game now!! https://drive.google.com/file/d/1zP1UiZ-jp-Ye-d-YipZESqt
 ### Scott Coonis, Roles: Basic Game Mechanic Designer
 
 ## Game Description:
-We are building a FPS/Third Person survivial game based on the Hunger Games concept. It will have procederally generated levels, alongside multiplayer.
+We are building a FPS/Third Person survivial game based on the Hunger Games concept. It will have procederally generated levels, alongside multiplayer. The levels are generated with a simplex noise, with borders around the map in a foggy atmosphere. The character is a white egg ... person ... thing that shoots a gun. You can set the amount of lives each player gets, and only one will stand alive.
 
-## Simulation Description:
-Can you work and memorize weapon locations under pressure? 
-
-## Currency Used:
-You will be bartering with your life! Don't die, kill your friends!
-
-## Problem/Question:
-How many lives will be lost because you aren't "gud" yet, and how do you get "gud"?
-
-## What Command Pattern:
-We will be using the Flyweight pattern and a form of the Command pattern!
 
 ## TO DO Next: 
 Oct. 22nd: General layout and design of game implemented
