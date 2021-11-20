@@ -10,7 +10,7 @@ that we are calling "Minger Games"
 ### Scott Coonis, Roles: Basic Game Mechanic Designer
 
 ## Game Description:
-We are building a FPS/Third Person survivial game based on the Hunger Games concept. It will have procederally generated levels, alongside multiplayer. The levels are generated with a simplex noise, with borders around the map in a foggy atmosphere. The character is a white egg ... person ... thing that shoots a gun. You can set the amount of lives each player gets, and only one will stand alive.
+We are building a FPS/Third Person survivial game based on the Hunger Games concept. It will have procederally generated levels, alongside multiplayer. The levels are generated with a Perlin noise, with borders around the map in a foggy atmosphere. The character is a white egg ... person ... thing that shoots a gun. You can set the amount of lives each player gets, and only one will stand alive.
 
 
 ## TO DO Next: 
